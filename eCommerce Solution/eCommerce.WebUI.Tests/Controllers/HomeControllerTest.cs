@@ -6,6 +6,9 @@ using System.Web.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using eCommerce.WebUI;
 using eCommerce.WebUI.Controllers;
+using eCommerce.Core.Contracts;
+using eCommerce.Core.Models;
+using eCommerce.Core.ViewModels;
 
 namespace eCommerce.WebUI.Tests.Controllers
 {
@@ -13,8 +16,17 @@ namespace eCommerce.WebUI.Tests.Controllers
     public class HomeControllerTest
     {
         [TestMethod]
-        public void Index()
+        public void IndexPageDoesReturnProducts()
         {
+            IRepository<Product> productContext = new Mocks.MockContext<Product>();
+            IRepository<ProductCategory> productCategoryContext = new Mocks.MockContext<ProductCategory>();
+            productContext.Insert(new Product());
+            HomeController controller = new HomeController(productContext, productCategoryContext);
+
+            var result = controller.Index() as ViewResult;
+            var viewModel = (ProductListViewModel)result.ViewData.Model;
+
+            Assert.AreEqual(1, viewModel.Products.Count());
             //// Arrange
             //HomeController controller = new HomeController();
 
