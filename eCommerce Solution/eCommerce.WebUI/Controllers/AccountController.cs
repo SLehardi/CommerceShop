@@ -9,6 +9,8 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 using eCommerce.WebUI.Models;
+using eCommerce.Core.Models;
+using eCommerce.Core.Contracts;
 
 namespace eCommerce.WebUI.Controllers
 {
@@ -17,15 +19,13 @@ namespace eCommerce.WebUI.Controllers
     {
         private ApplicationSignInManager _signInManager;
         private ApplicationUserManager _userManager;
+        private IRepository<Customer> customerRepository;
 
-        public AccountController()
-        {
-        }
+ 
 
-        public AccountController(ApplicationUserManager userManager, ApplicationSignInManager signInManager )
+        public AccountController(IRepository<Customer> customerRepository )
         {
-            UserManager = userManager;
-            SignInManager = signInManager;
+            this.customerRepository = customerRepository;
         }
 
         public ApplicationSignInManager SignInManager
@@ -155,6 +155,23 @@ namespace eCommerce.WebUI.Controllers
                 var result = await UserManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
+                    //register the customer model
+                    Customer customer = new Customer()
+                    {
+                        City = model.City,
+                        Email = model.Email,
+                        FirstName = model.FirstName,
+                        LastName = model.LastName,
+                        State = model.State,
+                        Street = model.Street,
+                        Zipcode = model.Zipcode,
+                        UserID = user.Id
+
+                    };
+
+                    customerRepository.Insert(customer);
+                    customerRepository.Commit();
+
                     await SignInManager.SignInAsync(user, isPersistent:false, rememberBrowser:false);
                     
                     // For more information on how to enable account confirmation and password reset please visit https://go.microsoft.com/fwlink/?LinkID=320771
